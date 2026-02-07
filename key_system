@@ -1,270 +1,116 @@
--- SISTEMA DE KEY - XURRAS SCRIPT
--- Tela de verificação de key com design moderno
-
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-
 local player = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
 
--- Configurações
-local API_URL = "http://localhost:8080"  -- Altere para seu servidor
+-- URL da tua Render
+local API_URL = "https://xurras-system.onrender.com" 
 local DISCORD_INVITE = "https://discord.gg/aG8r83nJFW"
 
--- Função para gerar HWID único
-local function generateHWID()
-    local hwid_data = {
-        game:GetService("RbxAnalyticsService"):GetClientId(),
-        game.JobId,
-        player.UserId,
-        tostring(os.time())
-    }
-    
-    return table.concat(hwid_data, "-")
-end
-
--- Função para copiar texto
-local function setClipboard(text)
-    if setclipboard then
-        setclipboard(text)
-        return true
-    elseif syn and syn.write_clipboard then
-        syn.write_clipboard(text)
-        return true
-    end
-    return false
-end
-
--- Função para obter executor
-local function getExecutor()
-    if identifyexecutor then
-        return identifyexecutor()
-    elseif syn then
-        return "Synapse X"
-    end
-    return "Unknown"
-end
-
--- Criar ScreenGui
 local KeyGui = Instance.new("ScreenGui")
-KeyGui.Name = "XurrasKeySystem"
+KeyGui.Name = "XurrasSystem"
 KeyGui.Parent = game.CoreGui
-KeyGui.ResetOnSpawn = false
-KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+KeyGui.IgnoreGuiInset = true
 
--- Background blur
-local BlurFrame = Instance.new("Frame")
-BlurFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
-BlurFrame.BackgroundTransparency = 0.1
-BlurFrame.BorderSizePixel = 0
-BlurFrame.Size = UDim2.new(1, 0, 1, 0)
-BlurFrame.Parent = KeyGui
+-- Background Escuro
+local bg = Instance.new("Frame", KeyGui)
+bg.BackgroundColor3 = Color3.fromRGB(5, 5, 10)
+bg.BackgroundTransparency = 0.2
+bg.Size = UDim2.new(1, 0, 1, 0)
 
--- Container principal
-local MainContainer = Instance.new("Frame")
-MainContainer.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
-MainContainer.BorderSizePixel = 0
-MainContainer.Position = UDim2.new(0.5, -220, 0.5, -180)
-MainContainer.Size = UDim2.new(0, 440, 0, 360)
-MainContainer.Parent = KeyGui
+-- Janela Principal
+local main = Instance.new("Frame", KeyGui)
+main.BackgroundColor3 = Color3.fromRGB(15, 18, 28)
+main.Position = UDim2.new(0.5, -180, 0.5, -160)
+main.Size = UDim2.new(0, 360, 0, 320)
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 15)
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 20)
-MainCorner.Parent = MainContainer
+-- LOGO NO MEIO
+local logo = Instance.new("ImageLabel", main)
+logo.BackgroundTransparency = 1
+logo.Position = UDim2.new(0.5, -50, 0, 25)
+logo.Size = UDim2.new(0, 100, 0, 100)
+logo.Image = "rbxthumb://type=Asset&id=14874672027&w=420&h=420"
 
--- Header
-local Header = Instance.new("Frame")
-Header.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-Header.BorderSizePixel = 0
-Header.Size = UDim2.new(1, 0, 0, 80)
-Header.Parent = MainContainer
+local title = Instance.new("TextLabel", main)
+title.BackgroundTransparency = 1
+title.Position = UDim2.new(0, 0, 0, 130)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Font = Enum.Font.GothamBold
+title.Text = "XURRAS SCRIPT"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 22
 
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 20)
-HeaderCorner.Parent = Header
+-- INPUT DA KEY
+local inputFrame = Instance.new("Frame", main)
+inputFrame.BackgroundColor3 = Color3.fromRGB(25, 30, 45)
+inputFrame.Position = UDim2.new(0.1, 0, 0, 175)
+inputFrame.Size = UDim2.new(0.8, 0, 0, 45)
+Instance.new("UICorner", inputFrame).CornerRadius = UDim.new(0, 8)
 
-local HeaderCover = Instance.new("Frame")
-HeaderCover.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-HeaderCover.BorderSizePixel = 0
-HeaderCover.Position = UDim2.new(0, 0, 1, -20)
-HeaderCover.Size = UDim2.new(1, 0, 0, 20)
-HeaderCover.Parent = Header
+local box = Instance.new("TextBox", inputFrame)
+box.BackgroundTransparency = 1
+box.Size = UDim2.new(1, 0, 1, 0)
+box.Font = Enum.Font.Code
+box.PlaceholderText = "INSIRA SUA Key!"
+box.PlaceholderColor3 = Color3.fromRGB(100, 100, 120)
+box.Text = ""
+box.TextColor3 = Color3.fromRGB(255, 255, 255)
+box.TextSize = 14
 
--- Logo
-local LogoIcon = Instance.new("ImageLabel")
-LogoIcon.BackgroundTransparency = 1
-LogoIcon.Position = UDim2.new(0, 20, 0, 15)
-LogoIcon.Size = UDim2.new(0, 50, 0, 50)
-LogoIcon.Image = "rbxassetid://14874672027"
-LogoIcon.Parent = Header
+-- BOTÃO VALIDAR
+local btn = Instance.new("TextButton", main)
+btn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+btn.Position = UDim2.new(0.1, 0, 0, 235)
+btn.Size = UDim2.new(0.8, 0, 0, 45)
+btn.Font = Enum.Font.GothamBold
+btn.Text = "VALIDAR KEY"
+btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+btn.TextSize = 16
+Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 
--- Título
-local Title = Instance.new("TextLabel")
-Title.BackgroundTransparency = 1
-Title.Position = UDim2.new(0, 80, 0, 10)
-Title.Size = UDim2.new(1, -100, 0, 30)
-Title.Font = Enum.Font.GothamBold
-Title.Text = "XURRAS SCRIPT"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 26
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Header
+-- BOTÃO COPIAR DISCORD (FOOTER)
+local copyBtn = Instance.new("TextButton", main)
+copyBtn.BackgroundTransparency = 1
+copyBtn.Position = UDim2.new(0, 0, 0, 285)
+copyBtn.Size = UDim2.new(1, 0, 0, 25)
+copyBtn.Font = Enum.Font.GothamSemibold
+copyBtn.Text = "Clique para copiar o discord: " .. DISCORD_INVITE:gsub("https://", "")
+copyBtn.TextColor3 = Color3.fromRGB(120, 120, 140)
+copyBtn.TextSize = 12
 
--- Subtítulo
-local Subtitle = Instance.new("TextLabel")
-Subtitle.BackgroundTransparency = 1
-Subtitle.Position = UDim2.new(0, 80, 0, 42)
-Subtitle.Size = UDim2.new(1, -100, 0, 20)
-Subtitle.Font = Enum.Font.Gotham
-Subtitle.Text = "Sistema de Verificação"
-Subtitle.TextColor3 = Color3.fromRGB(200, 200, 220)
-Subtitle.TextSize = 14
-Subtitle.TextXAlignment = Enum.TextXAlignment.Left
-Subtitle.Parent = Header
-
--- Content
-local ContentFrame = Instance.new("Frame")
-ContentFrame.BackgroundTransparency = 1
-ContentFrame.Position = UDim2.new(0, 0, 0, 80)
-ContentFrame.Size = UDim2.new(1, 0, 1, -80)
-ContentFrame.Parent = MainContainer
-
--- Instrução
-local InstructionLabel = Instance.new("TextLabel")
-InstructionLabel.BackgroundTransparency = 1
-InstructionLabel.Position = UDim2.new(0, 30, 0, 20)
-InstructionLabel.Size = UDim2.new(1, -60, 0, 40)
-InstructionLabel.Font = Enum.Font.Gotham
-InstructionLabel.Text = "🔑 Insira sua key para continuar"
-InstructionLabel.TextColor3 = Color3.fromRGB(180, 180, 200)
-InstructionLabel.TextSize = 15
-InstructionLabel.TextWrapped = true
-InstructionLabel.Parent = ContentFrame
-
--- Input Frame
-local KeyInputFrame = Instance.new("Frame")
-KeyInputFrame.BackgroundColor3 = Color3.fromRGB(30, 35, 50)
-KeyInputFrame.BorderSizePixel = 0
-KeyInputFrame.Position = UDim2.new(0, 30, 0, 70)
-KeyInputFrame.Size = UDim2.new(1, -60, 0, 50)
-KeyInputFrame.Parent = ContentFrame
-
-local KeyInputCorner = Instance.new("UICorner")
-KeyInputCorner.CornerRadius = UDim.new(0, 12)
-KeyInputCorner.Parent = KeyInputFrame
-
-local KeyInput = Instance.new("TextBox")
-KeyInput.BackgroundTransparency = 1
-KeyInput.Position = UDim2.new(0, 15, 0, 0)
-KeyInput.Size = UDim2.new(1, -95, 1, 0)
-KeyInput.Font = Enum.Font.GothamMedium
-KeyInput.PlaceholderText = "XURRAS-XXXX-XXXX-XXXX-XXXX"
-KeyInput.PlaceholderColor3 = Color3.fromRGB(100, 100, 120)
-KeyInput.Text = ""
-KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-KeyInput.TextSize = 16
-KeyInput.TextXAlignment = Enum.TextXAlignment.Left
-KeyInput.ClearTextOnFocus = false
-KeyInput.Parent = KeyInputFrame
-
--- Botão Colar
-local PasteButton = Instance.new("TextButton")
-PasteButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-PasteButton.BorderSizePixel = 0
-PasteButton.Position = UDim2.new(1, -70, 0.5, -15)
-PasteButton.Size = UDim2.new(0, 60, 0, 30)
-PasteButton.Font = Enum.Font.GothamBold
-PasteButton.Text = "📋 Colar"
-PasteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-PasteButton.TextSize = 12
-PasteButton.Parent = KeyInputFrame
-
-local PasteCorner = Instance.new("UICorner")
-PasteCorner.CornerRadius = UDim.new(0, 8)
-PasteCorner.Parent = PasteButton
-
--- Get Key Button
-local GetKeyButton = Instance.new("TextButton")
-GetKeyButton.BackgroundColor3 = Color3.fromRGB(139, 92, 246)
-GetKeyButton.BorderSizePixel = 0
-GetKeyButton.Position = UDim2.new(0, 30, 0, 140)
-GetKeyButton.Size = UDim2.new(0.5, -40, 0, 50)
-GetKeyButton.Font = Enum.Font.GothamBold
-GetKeyButton.Text = "🔗 Pegar Key"
-GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-GetKeyButton.TextSize = 16
-GetKeyButton.Parent = ContentFrame
-
-local GetKeyCorner = Instance.new("UICorner")
-GetKeyCorner.CornerRadius = UDim.new(0, 12)
-GetKeyCorner.Parent = GetKeyButton
-
--- Confirm Button
-local ConfirmButton = Instance.new("TextButton")
-ConfirmButton.BackgroundColor3 = Color3.fromRGB(72, 187, 120)
-ConfirmButton.BorderSizePixel = 0
-ConfirmButton.Position = UDim2.new(0.5, 10, 0, 140)
-ConfirmButton.Size = UDim2.new(0.5, -40, 0, 50)
-ConfirmButton.Font = Enum.Font.GothamBold
-ConfirmButton.Text = "✅ Confirmar"
-ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ConfirmButton.TextSize = 16
-ConfirmButton.Parent = ContentFrame
-
-local ConfirmCorner = Instance.new("UICorner")
-ConfirmCorner.CornerRadius = UDim.new(0, 12)
-ConfirmCorner.Parent = ConfirmButton
-
--- Status Label
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.Position = UDim2.new(0, 30, 0, 210)
-StatusLabel.Size = UDim2.new(1, -60, 0, 40)
-StatusLabel.Font = Enum.Font.GothamMedium
-StatusLabel.Text = ""
-StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-StatusLabel.TextSize = 14
-StatusLabel.TextWrapped = true
-StatusLabel.Parent = ContentFrame
-
--- Funções
-local function showStatus(message, isError)
-    StatusLabel.Text = message
-    StatusLabel.TextColor3 = isError and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(100, 255, 150)
+-- Função para Notificação
+local function notify(msg)
+    StarterGui:SetCore("SendNotification", {
+        Title = "XURRAS SYSTEM",
+        Text = msg,
+        Duration = 3
+    })
 end
 
--- Get Key
-GetKeyButton.MouseButton1Click:Connect(function()
-    if setClipboard(DISCORD_INVITE) then
-        showStatus("✅ Link copiado! Cole no navegador/Discord", false)
-    else
-        showStatus("🔗 Entre no Discord: " .. DISCORD_INVITE, false)
-    end
+-- Lógica de Copiar Link
+copyBtn.MouseButton1Click:Connect(function()
+    setclipboard(DISCORD_INVITE) -- Copia para o Windows/Mobile
+    notify("Convite do Discord copiado com sucesso!")
+    
+    -- Efeito visual rápido
+    copyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    task.wait(0.2)
+    copyBtn.TextColor3 = Color3.fromRGB(120, 120, 140)
 end)
 
--- Paste
-PasteButton.MouseButton1Click:Connect(function()
-    pcall(function()
-        if getclipboard then
-            KeyInput.Text = getclipboard()
-            showStatus("✅ Key colada!", false)
-        end
-    end)
-end)
-
--- Confirm
-ConfirmButton.MouseButton1Click:Connect(function()
-    local key = KeyInput.Text:gsub("%s+", "")
-    
-    if key == "" then
-        showStatus("❌ Insira uma key!", true)
-        return
+-- Lógica de Validação
+btn.MouseButton1Click:Connect(function()
+    local key = box.Text:gsub("%s+", "")
+    if #key < 10 then 
+        notify("Por favor, insira uma key válida!")
+        return 
     end
     
-    ConfirmButton.Text = "⏳ Verificando..."
+    btn.Text = "A VERIFICAR..."
     
     local success, response = pcall(function()
-        return HttpService:RequestAsync({
+        return request({
             Url = API_URL .. "/api/validate-key",
             Method = "POST",
             Headers = {["Content-Type"] = "application/json"},
@@ -272,30 +118,25 @@ ConfirmButton.MouseButton1Click:Connect(function()
                 key = key,
                 username = player.Name,
                 user_id = tostring(player.UserId),
-                avatar_url = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=150&height=150&format=png",
                 device_id = game:GetService("RbxAnalyticsService"):GetClientId(),
-                executor = getExecutor(),
-                hwid = generateHWID()
+                executor = (identifyexecutor and identifyexecutor()) or "Unknown"
             })
         })
     end)
-    
+
     if success and response.StatusCode == 200 then
-        local data = HttpService:JSONDecode(response.Body)
-        if data.success then
-            showStatus("✅ " .. data.message, false)
-            if writefile then
-                writefile("xurras_key.txt", key)
-            end
-            wait(1)
-            KeyGui:Destroy()
-            loadstring(game:HttpGet("SEU_LINK_DO_LOADER"))()
-        else
-            showStatus("❌ " .. data.message, true)
-            ConfirmButton.Text = "✅ Confirmar"
-        end
+        btn.Text = "ACESSO PERMITIDO!"
+        btn.BackgroundColor3 = Color3.fromRGB(72, 187, 120)
+        notify("Acesso concedido! Carregando loader...")
+        task.wait(1)
+        KeyGui:Destroy()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Emanuelzk1533/loader/refs/heads/main/loader"))()
     else
-        showStatus("❌ Erro ao conectar!", true)
-        ConfirmButton.Text = "✅ Confirmar"
+        btn.Text = "KEY INVÁLIDA!"
+        btn.BackgroundColor3 = Color3.fromRGB(245, 101, 101)
+        notify("Erro: Key inválida ou expirada!")
+        task.wait(2)
+        btn.Text = "VALIDAR KEY"
+        btn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     end
 end)
